@@ -1,0 +1,529 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NexLib — Smart University Library</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --ink: #0f1923;
+    --cream: #eef2f7;
+    --warm: #dde6f0;
+    --gold: #2563eb;
+    --gold-light: #bfdbfe;
+    --rust: #1d4ed8;
+    --forest: #1e3a5f;
+    --forest-light: #2d5a8e;
+    --muted: #5a6b80;
+    --paper: #f4f8fd;
+    --white: #ffffff;
+    --shadow: rgba(15,25,35,0.14);
+  }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--cream);
+    color: var(--ink);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* PAGES */
+  .page { display: none; min-height: 100vh; }
+  .page.active { display: block; }
+
+  /* NAV */
+  nav {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+    background: rgba(238, 242, 247, 0.92);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid rgba(37, 99, 235, 0.2);
+    padding: 0 2rem;
+    height: 64px;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+
+  .nav-logo {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.5rem; font-weight: 900;
+    color: var(--forest);
+    letter-spacing: -0.02em;
+    cursor: pointer;
+  }
+  .nav-logo span { color: var(--gold); }
+
+  .nav-links { display: flex; gap: 2rem; align-items: center; }
+  .nav-link {
+    font-size: 0.875rem; font-weight: 500; color: var(--muted);
+    cursor: pointer; transition: color 0.2s;
+    text-decoration: none; letter-spacing: 0.02em;
+    background: none; border: none; font-family: inherit;
+  }
+  .nav-link:hover { color: var(--forest); }
+  .nav-link.active-link { color: var(--forest); font-weight: 600; }
+
+  /* HERO */
+  .hero {
+    min-height: 85vh;
+    display: grid; grid-template-columns: 1fr 1fr;
+    align-items: center;
+    padding: 64px 0 0;
+    overflow: hidden;
+  }
+
+  .hero-left { padding: 4rem 3rem 4rem 4rem; position: relative; }
+  .hero-eyebrow {
+    display: inline-flex; align-items: center; gap: 0.5rem;
+    background: rgba(37, 99, 235, 0.1);
+    border: 1px solid rgba(37, 99, 235, 0.3);
+    padding: 0.35rem 1rem; border-radius: 100px;
+    font-size: 0.75rem; font-weight: 600; color: var(--rust);
+    letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 1.5rem;
+  }
+  .eyebrow-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--gold); }
+
+  .hero-title {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(2.5rem, 4.5vw, 3.8rem);
+    font-weight: 900; line-height: 1.1; color: var(--ink); margin-bottom: 1.25rem;
+  }
+  .hero-title em { font-style: italic; color: var(--gold); }
+  .hero-sub { font-size: 1.05rem; color: var(--muted); line-height: 1.7; max-width: 460px; margin-bottom: 2.5rem; }
+
+  .hero-right {
+    background: var(--forest); min-height: 85vh;
+    display: flex; align-items: center; justify-content: center;
+    position: relative; overflow: hidden; padding: 4rem 3rem;
+  }
+  .hero-pattern {
+    position: absolute; inset: 0; opacity: 0.04;
+    background-image: repeating-linear-gradient(45deg, var(--gold) 0, var(--gold) 1px, transparent 0, transparent 50%);
+    background-size: 20px 20px;
+  }
+
+  .books-showcase { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; max-width: 360px; z-index: 1; }
+  .book-spine {
+    background: var(--white); border-radius: 6px; padding: 1.25rem 1rem; cursor: pointer; transition: all 0.3s;
+    border-left: 5px solid var(--gold);
+  }
+  .book-spine:hover { transform: translateY(-4px); }
+  .bs-genre { font-size: 0.65rem; text-transform: uppercase; color: var(--muted); margin-bottom: 0.3rem; }
+  .bs-title { font-family: 'Playfair Display', serif; font-size: 0.85rem; font-weight: 700; color: var(--ink); }
+
+  /* SECTIONS */
+  .section { padding: 4rem; }
+  .section-label { font-size: 0.75rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--gold); font-weight: 700; margin-bottom: 0.5rem; }
+  .section-title { font-family: 'Playfair Display', serif; font-size: 2rem; font-weight: 700; color: var(--ink); margin-bottom: 2rem; }
+
+  /* FEATURES SECTION STYLING */
+  .features-grid {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1.5rem; margin-top: 1.5rem;
+  }
+  .feature-card {
+    background: var(--white); border-radius: 12px; padding: 2rem;
+    border: 1px solid rgba(37, 99, 235, 0.1); transition: all 0.3s;
+  }
+  .feature-card:hover { transform: translateY(-4px); box-shadow: 0 10px 25px var(--shadow); }
+  .feature-icon { font-size: 2rem; margin-bottom: 1rem; display: inline-block; }
+  .feature-title { font-family: 'Playfair Display', serif; font-size: 1.2rem; font-weight: 700; color: var(--forest); margin-bottom: 0.5rem; }
+  .feature-desc { font-size: 0.9rem; color: var(--muted); line-height: 1.6; }
+
+  /* BROWSE CATALOGUE */
+  #browse-page { background: var(--paper); padding-top: 64px; }
+  .browse-header { background: var(--forest); padding: 3rem 4rem; color: white; }
+  .browse-title { font-family: 'Playfair Display', serif; font-size: 2.25rem; color: var(--gold-light); }
+  
+  .search-bar-wrap { padding: 1.5rem 4rem; background: var(--white); border-bottom: 1px solid rgba(0,0,0,0.05); display: flex; gap: 1rem; }
+  .search-input {
+    width: 100%; height: 46px; padding: 0 1.5rem; border: 1.5px solid rgba(0,0,0,0.1);
+    border-radius: 8px; font-size: 0.95rem; outline: none; background: var(--cream);
+  }
+  .search-input:focus { border-color: var(--gold); background: var(--white); }
+
+  .books-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 2rem; padding: 3rem 4rem; }
+  .book-card { background: var(--white); border-radius: 12px; overflow: hidden; border: 1px solid rgba(0,0,0,0.06); cursor: pointer; transition: transform 0.3s, box-shadow 0.3s; }
+  .book-card:hover { transform: translateY(-6px); box-shadow: 0 12px 28px var(--shadow); }
+  .book-cover { height: 160px; padding: 1.5rem; display: flex; align-items: flex-end; position: relative; color: white; }
+  .book-cover-title { font-family: 'Playfair Display', serif; font-size: 1.1rem; font-weight: 700; z-index: 2; text-shadow: 0 2px 4px rgba(0,0,0,0.4); }
+  .book-meta { padding: 1.25rem; }
+  .book-author { font-size: 0.8rem; color: var(--muted); margin-bottom: 0.75rem; }
+  .book-read-btn { width: 100%; padding: 0.6rem; background: var(--forest); color: white; border: none; border-radius: 6px; font-weight: 600; cursor: pointer; font-size: 0.85rem; }
+  .book-read-btn:hover { background: var(--forest-light); }
+
+  /* INDEX PAGE */
+  .index-container { max-width: 850px; margin: 2rem auto; padding: 2.5rem; background: var(--white); border-radius: 12px; box-shadow: 0 4px 20px var(--shadow); }
+  .index-header { border-bottom: 2px solid var(--warm); padding-bottom: 1.5rem; margin-bottom: 2rem; }
+  .index-title { font-family: 'Playfair Display', serif; font-size: 2.25rem; color: var(--forest); }
+  .chapter-list { list-style: none; display: flex; flex-direction: column; gap: 0.85rem; }
+  .chapter-item { display: flex; justify-content: space-between; align-items: center; padding: 1.1rem; background: var(--paper); border-radius: 8px; cursor: pointer; transition: all 0.2s; }
+  .chapter-item:hover { background: #e0e9f5; transform: translateX(4px); }
+  .chapter-name { font-weight: 600; color: var(--ink); }
+  .chapter-number { color: var(--gold); font-size: 0.8rem; font-weight: 700; }
+
+  /* HOME BOOKS PREVIEW */
+  .books-home-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 1.5rem; }
+  .home-book-card { background: var(--white); border-radius: 8px; overflow: hidden; border: 1px solid rgba(0,0,0,0.06); cursor: pointer; transition: all 0.25s; }
+  .home-book-card:hover { transform: translateY(-4px); }
+  .home-book-cover { height: 110px; }
+  .home-book-meta { padding: 0.85rem; }
+  .home-book-title { font-family: 'Playfair Display', serif; font-size: 0.85rem; font-weight: 700; color: var(--ink); }
+
+  /* READER PAGE */
+  #reader-page { background: #fafafa; padding-top: 64px; }
+  .reader-topbar { background: var(--forest); padding: 1rem 2rem; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 64px; z-index: 50; }
+  .reader-back { background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.2); color: white; border-radius: 6px; padding: 0.4rem 1rem; font-weight: 600; cursor: pointer; }
+  .reader-topbar-title { font-family: 'Playfair Display', serif; color: var(--gold-light); font-size: 1.1rem; font-weight: 700; }
+  .reader-body { max-width: 760px; margin: 0 auto; padding: 4rem 2rem 6rem; background: var(--white); box-shadow: 0 0 30px rgba(0,0,0,0.03); margin-top: 1.5rem; border-radius: 8px; }
+  .reader-chapter-title { font-family: 'Playfair Display', serif; font-size: 2.2rem; font-weight: 700; color: var(--ink); margin-bottom: 2.5rem; padding-bottom: 1rem; border-bottom: 2px solid var(--cream); }
+  
+  /* Page Styling in Reader for Real Book Experience */
+  .reader-page-break { display: flex; align-items: center; justify-content: center; margin: 3rem 0; color: var(--muted); font-size: 0.8rem; font-weight: 600; letter-spacing: 0.2em; text-transform: uppercase; border-top: 1px dashed var(--warm); padding-top: 1rem; }
+  .reader-text p { font-size: 1.1rem; line-height: 2; color: #2d3748; margin-bottom: 1.8rem; text-align: justify; text-indent: 2rem; }
+  
+  .btn-primary { background: var(--gold); color: white; border: none; cursor: pointer; padding: 0.8rem 2rem; border-radius: 50px; font-weight: 600; transition: background 0.2s; }
+  .btn-primary:hover { background: var(--rust); }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-logo" onclick="showPage('home')">Nex<span>Lib</span></div>
+  <div class="nav-links">
+    <button class="nav-link active-link" id="nav-home" onclick="showPage('home')">Home</button>
+    <button class="nav-link" id="nav-browse" onclick="showPage('browse')">Browse Books</button>
+  </div>
+</nav>
+
+<div id="home-page" class="page active">
+  <section class="hero">
+    <div class="hero-left">
+      <div class="hero-eyebrow"><div class="eyebrow-dot"></div>HEC Digital Library Hub</div>
+      <h1 class="hero-title">The Complete <em>University</em> Textbooks Repository</h1>
+      <p class="hero-sub">Get direct academic access to standardized textbooks, multi-page deep chapters, and extensive dynamic curriculum indexes.</p>
+      <button class="btn-primary" onclick="showPage('browse')">📚 Explore Full Catalog</button>
+    </div>
+    <div class="hero-right">
+      <div class="hero-pattern"></div>
+      <div class="books-showcase">
+        <div class="book-spine" onclick="showPage('browse')"><div class="bs-genre">Mathematics</div><div class="bs-title">University Calculus</div></div>
+        <div class="book-spine" onclick="showPage('browse')" style="border-left-color: #e53e3e;"><div class="bs-genre">IT / Computers</div><div class="bs-title">Peter Norton's Intro</div></div>
+        <div class="book-spine" onclick="showPage('browse')" style="border-left-color: #38a169;"><div class="bs-genre">Languages</div><div class="bs-title">Advanced Urdu Literature</div></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" style="background: var(--white); border-top: 1px solid rgba(0,0,0,0.05); border-bottom: 1px solid rgba(0,0,0,0.05);">
+    <div class="section-label">Platform Benefits</div>
+    <h2 class="section-title">Key Features & Core Advantages</h2>
+    <div class="features-grid">
+      <div class="feature-card">
+        <span class="feature-icon">📖</span>
+        <h3 class="feature-title">Multi-Page Reading</h3>
+        <p class="feature-desc">Chapters are structured into dynamic multi-page breaks to mimic real physical library textbooks seamlessly.</p>
+      </div>
+      <div class="feature-card">
+        <span class="feature-icon">🗂️</span>
+        <h3 class="feature-title">Deep Indexing System</h3>
+        <p class="feature-desc">Interactive Table of Contents allows immediate navigation to specific high-level course definitions and chapters.</p>
+      </div>
+      <div class="feature-card">
+        <span class="feature-icon">🌐</span>
+        <h3 class="feature-title">Diverse Academic Domains</h3>
+        <p class="feature-desc">Complete coverage of university curriculum subjects including Mathematics, IT, Computer Science, Urdu, Islamiyat, and English.</p>
+      </div>
+      <div class="feature-card">
+        <span class="feature-icon">⚡</span>
+        <h3 class="feature-title">Zero Loading Latency</h3>
+        <p class="feature-desc">Highly optimized data structuring guarantees lightning-fast chapter indexing without freezing web browser threads.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="section-label">Featured University Materials</div>
+    <div class="books-home-grid" id="home-books-preview"></div>
+  </section>
+</div>
+
+<div id="browse-page" class="page">
+  <div class="browse-header">
+    <h2 class="browse-title">📚 Central Academic Library Catalog</h2>
+    <p>Search standard curriculum textbooks with fully generated long chapters.</p>
+  </div>
+  <div class="search-bar-wrap">
+    <input type="text" class="search-input" id="search-input" placeholder="Filter by Title, Author, or Subject Domain..." oninput="filterBooks()">
+  </div>
+  <div class="books-grid" id="books-grid"></div>
+</div>
+
+<div id="index-page" class="page" style="padding-top: 80px;">
+  <div class="index-container" id="index-content"></div>
+</div>
+
+<div id="reader-page" class="page">
+  <div id="reader-content"></div>
+</div>
+
+<script>
+const BOOKS = [
+  { id: 1, title: "University Calculus (Early Transcendentals)", author: "James Stewart", genre: "Mathematics", color: "#1a365d" },
+  { id: 2, title: "University Physics (With Modern Physics)", author: "Hugh D. Young & Roger A. Freedman", genre: "Science", color: "#2f855a" },
+  { id: 3, title: "Clean Code (Agile Software Craftsmanship)", author: "Robert C. Martin", genre: "IT", color: "#2b6cb0" },
+  { id: 4, title: "Introduction to Computers (7th Edition)", author: "Peter Norton", genre: "Computer Science", color: "#c53030" },
+  { id: 5, title: "University English Literature & Composition", author: "Oxford Academic Board", genre: "English", color: "#4a5568" },
+  { id: 6, title: "Tareekh-e-Adab-e-Urdu (Advanced Urdu)", author: "Dr. Jamil Jalibi", genre: "Urdu", color: "#2c7a7b" },
+  { id: 7, title: "Introduction to Islamic Studies (Islamiyat)", author: "Dr. Muhammad Hamidullah", genre: "Islamiyat", color: "#234e52" },
+  { id: 8, title: "Introduction to Algorithms (Core Course)", author: "Thomas H. Cormen", genre: "Computer Science", color: "#44337a" }
+];
+
+// GENERATED MASSIVE MULTI-PAGE TEXTS TO MIMIC 5-PAGES PER CHAPTER
+const BOOK_CONTENT = {
+  1: {
+    chapters: [
+      { 
+        title: "Limits, Continuity and Delta-Epsilon Foundations", 
+        pages: [
+          "The concept of a limit is the foundational cornerstone that separates Calculus from classical Algebra. In standard mathematics, we evaluate expressions precisely by plugging in static values. However, real-world phenomena involve constant motion, instantaneous deceleration, and dynamic structural loads. To mathematically compute the exact speed of a moving object at a singular microsecond, algebraic systems fail because division by zero is undefined. Here, the framework of a limit steps in. Instead of assessing what happens exactly at a specific point, we investigate the mathematical behavior of a continuous function as it infinitely approaches that point from both the negative left-hand vector and the positive right-hand vector.",
+          "Let us formalize this behavior using the rigorous framework created by Augustin-Louis Cauchy: the precise Delta-Epsilon definition of a limit. We state that the limit of f(x) as x approaches c is equal to L if and only if for every positive real number epsilon, there exists a corresponding positive real number delta such that if the absolute difference between x and c is bounded by delta, then the absolute difference between the function output and L is smaller than epsilon. This topological binding allows engineers to secure thresholds of safety in dynamic architecture. If a structural bridge expands due to heat, the resulting micro-stresses must fall within bounded error matrices.",
+          "Beyond simple polynomial functions, limits become incredibly intricate when evaluating transcendental structures or indeterminate forms. When we confront rational expressions that evaluate to zero divided by zero or infinity over infinity, we must apply rigorous algebraic transformations like factoring, rationalizing the numerator, or using trigonometric identities. Consider the famous identity where the limit of sin(x)/x equals one as x approaches zero. This geometric truth cannot be proven by simple substitution, requiring instead the Squeeze Theorem, where the target function is trapped between two known boundary functions.",
+          "Continuity is the logical extension of the limit framework. A function is defined as perfectly continuous at a single coordinates if three criteria are simultaneously met: the function must be real and defined at that coordinate, the two-sided limit must exist cleanly at that point, and the limit value must exactly equal the evaluated function value. If any of these links snap, we encounter discontinuities. These are classified as removable discontinuities (a simple missing point), jump discontinuities (often seen in piecewise step functions), or infinite essential discontinuities where the function shoots off to asymptotes.",
+          "The practical application of these multi-page theoretical proofs manifests heavily in the Intermediate Value Theorem (IVT). The theorem dictates that if a continuous function spans an interval between an absolute minimum output A and an absolute maximum output B, it must passing through every single intermediate real number value between A and B at least once. Computer scientists use this theorem to execute binary root-finding algorithms, enabling systems to locate structural intersections in complex engineering layouts where zero crossings occur."
+        ]
+      },
+      {
+        title: "Advanced Differentiation Rules and Optimization Vectors",
+        pages: [
+          "Differentiation is the mathematical procedure used to compute the precise instantaneous rate of change of an evolving variable. Geometrically, finding a derivative equates to determining the exact slope of a tangent line hitting a non-linear curve at a singular point. Historically, calculating this required evaluating long, tedious limits using difference quotients. However, modern university calculus establishes a system of algebraic rules that streamline operations across multi-variable systems, starting with the fundamental Power Rule, Product Rule, and Quotient Rule.",
+          "The true engineering complexity begins when functions are nested within other functions, requiring the utilization of the Chain Rule. The Chain Rule dictates that the derivative of a composite function is the derivative of the outer layer evaluated at the inner layer, multiplied cleanly by the derivative of the inner layer itself. This rule is crucial in modern machine learning for the backpropagation step, where multi-layered neural networks calculate localized error weight shifts across nested nodes.",
+          "When tracking curves that are non-functional or multi-valued—such as circles, ellipses, or complex hyper-dimensional orbits—explicitly solving for y becomes impossible. In these scenarios, we must implement Implicit Differentiation. By taking the derivative of every term with respect to x across the entire equation, and applying the Chain Rule whenever y is touched, we extract the unified slope vector. This allows physicists to map gravitational stress fields around planetary bodies without isolating complex explicit variables.",
+          "Optimization is where differentiation proves its absolute economic and industrial utility. According to Fermat's Theorem, extreme values occur at critical points where the first derivative is either perfectly equal to zero or completely undefined. By isolating these critical coordinates, engineers can calculate the exact dimensions required to build a structural container that maximizes volumetric storage while minimizing material manufacturing costs.",
+          "To guarantee whether a critical point represents a maximum or a minimum, we invoke the Second Derivative Test. The second derivative measures the rate of change of the slope itself, which describes the concavity of the curve. If the second derivative is positive, the curve is concave up, meaning the point is a local minimum. If negative, it is concave down, marking a local maximum. This lets data scientists find the lowest point of cost functions to optimize financial portfolios."
+        ]
+      }
+    ]
+  },
+  2: {
+    chapters: [
+      {
+        title: "Classical Kinematics and Classical Vector Mechanics",
+        pages: [
+          "Kinematics is the branch of classical mechanics that completely describes the spatial motion of points, bodies, and systems of massive objects without considering the underlying forces that cause the motion. To map motion accurately across our three-dimensional universe, we must establish a rigorous coordinate system and utilize vector calculus. Motion is defined through three interconnected vector fields: position, velocity, and acceleration, each acting as a time-dependent derivative of the other.",
+          "Average velocity represents the total spatial displacement divided by the total duration of elapsed time. However, to understand true physics, we must evaluate instantaneous velocity, which is the mathematical limit of the average velocity as the time interval approaches zero. When an object shifts its velocity vector over time, it undergoes acceleration. In scenarios involving constant uniform linear acceleration, we can derive the standard equations of kinematics that link distance, initial velocity, time, and terminal speed.",
+          "When we step outside of idealized one-dimensional lines, we enter the domain of projectile motion. Here, a particle is thrown into a two-dimensional gravitational field, experiencing acceleration strictly along the vertical axis due to planetary gravity, while its horizontal velocity vector remains completely constant (assuming negligible atmospheric drag). This separation of orthogonal axes allows ballistic tracking systems to predict projectile impacts with absolute pinpoint accuracy.",
+          "Circular motion introduces the fascinating concept of centripetal acceleration. Even if an object moves around a circular track at a perfectly uniform scalar speed, its direction vector is shifting at every microsecond. Because velocity is a vector, any change in direction implies active acceleration. This centripetal acceleration always points directly inward toward the absolute center of the circular path, governed by the square of the linear velocity divided by the radius.",
+          "To scale these kinematics into macro-engineering, frames of reference must be defined. In inertial reference frames, classical motion equations line up seamlessly. However, when observing motion from within a accelerating or rotating frame (like our rotating Earth), non-inertial effects manifest. This requires the inclusion of fictitious corrections like the Coriolis force, which dictates the rotational direction of global storm systems and long-range flight path trajectories."
+        ]
+      }
+    ]
+  },
+  3: {
+    chapters: [
+      {
+        title: "Clean Architecture, Technical Debt, and SOLID Principles",
+        pages: [
+          "Software architecture is not merely about making a program compile or pass basic user acceptance testing; it is about keeping the software adaptable, maintainable, and highly readable over a multi-year lifecycle. When codebases are rushed to production by cutting architectural corners, teams accumulate 'Technical Debt.' Much like financial debt, technical debt demands high interest payments in the form of slowed development velocities, where adding a simple feature requires modifying hundreds of scattered legacy modules.",
+          "To combat this decay, Robert C. Martin popularized the SOLID principles of object-oriented design. The first pillar is the Single Responsibility Principle (SRP). SRP states that a class or module should have one, and only one, reason to change. If a single class handles both the parsing of database records and the formatting of financial HTML reports, it violates SRP. A change in reporting style risks breaking database connection pooling logic unnecessarily.",
+          "The Open-Closed Principle (OCP) states that software artifacts should be completely open for extension but strictly closed for modification. Instead of writing massive, nested switch-statements to handle new user types, developers should utilize polymorphism and interfaces. When a new business tier is introduced, a new class implementing the core interface is created, meaning the existing, thoroughly tested production code remains untouched and stable.",
+          "The Liskov Substitution Principle (LSP) enforces that subclasses must be completely substitutable for their base classes without breaking the correctness of the system. The classic violation is a Square class inheriting from a Rectangle class. If a function expects a standard rectangle and alters its width, it assumes height remains constant. If a square object is passed in, its internal logic shifts height to match, violating expectations.",
+          "Finally, the Interface Segregation Principle (ISP) and Dependency Inversion Principle (DIP) secure modular boundaries. ISP warns against creating bloated 'fat' interfaces, forcing classes to implement methods they don't use. DIP dictates that high-level business rules must never depend on low-level utility details; instead, both must depend on abstract interfaces. This decouples core logic from specific database or UI frameworks."
+        ]
+      }
+    ]
+  },
+  4: {
+    chapters: [
+      {
+        title: "Hardware Architecture, Binary Logic, and Processor Execution",
+        pages: [
+          "At the lowest layer of computing, every single complex software interaction—whether it is a high-definition video stream or an AI algorithm—is translated down into binary logic gates etched onto silicon microchips. Peter Norton's architectural breakdown explains that the central nervous system of any computer is the Central Processing Unit (CPU), which functions alongside System Memory (RAM) across a network of high-speed data buses.",
+          "The CPU executes instructions via a strict, continuous hardware loop known as the Machine Cycle: Fetch, Decode, Execute, and Store. During the fetch phase, the control unit retrieves an instruction encoded in binary digits from a specific memory address located in RAM, directed by a special internal register called the Program Counter. This binary string is then mapped into active execution signals inside the CPU's core.",
+          "In the decoding phase, the instruction is broken down into an operation code (opcode) and operands. The internal Arithmetic Logic Unit (ALU) performs the actual mathematical addition, subtraction, or boolean comparisons. The execution speed of these cycles is regulated by an internal system clock generating billions of electrical pulses per second, measured globally in Gigahertz (GHz).",
+          "Memory hierarchy is critical to preventing processing bottlenecks. Because RAM is physically distant from the CPU cores, retrieving data from it takes a massive number of clock cycles. To solve this, chip designers incorporate ultra-fast, expensive static memory called Cache (L1, L2, L3) directly onto the CPU die. The processor uses predictive algorithms to load data into cache before the ALU even requests it.",
+          "Secondary storage architectures bridge the gap between temporary and permanent data retention. Traditional Hard Disk Drives (HDDs) rely on mechanical platters spinning under magnetic read heads, which limits data seek times. Modern Solid State Drives (SSDs) utilize flash memory arrays with floating-gate transistors, eliminating mechanical latency and offering blazing transfer speeds."
+        ]
+      }
+    ]
+  },
+  5: {
+    chapters: [
+      {
+        title: "The Evolution of Critical Analysis and Narrative Structures",
+        pages: [
+          "Literary analysis at the university level requires students to look past the surface-level plot of a text and interrogate the historical, cultural, and structural matrices that shape narrative meaning. Literature is fundamentally an active dialogue between author, text, and society. To break down a text rigorously, one must understand structural narrative techniques, starting with the classical Freytag's Pyramid structure.",
+          "Freytag's Pyramid maps out the dramatic arc common in classical tragedy and modern novels alike: Exposition, Inciting Incident, Rising Action, Climax, Falling Action, and Resolution. However, modern university literature often highlights texts that intentionally disrupt this linear format—using fragmented timelines, stream-of-consciousness perspectives, and unreliable narrators to mirror psychological states.",
+          "Theme is the deep, unifying concept that drives a narrative forward. It is not a simple one-word topic like 'love' or 'war'; rather, a theme is an active argument or perspective the text delivers regarding human nature or societal structures. Critical analysis involves tracking recurring motifs, symbols, and linguistic metaphors that act as structural evidence pointing toward that central theme.",
+          "Furthermore, modern literary criticism utilizes varied theoretical lenses to unpack hidden power dynamics within texts. A Marxist critical lens analyzes how economic class struggles and capital distribution influence character motives. A Psychoanalytic lens investigates subtextual desires, defense mechanisms, and suppressed traumas hidden within the characters' actions or dialogue.",
+          "To compose an academic literary essay, a student must construct a compelling, arguable thesis statement supported by close reading analysis. Close reading means isolating specific sentences, analyzing word choice (diction), sentence structure (syntax), and emotional undertones (tone). This process transforms subjective interpretation into objective academic discourse."
+        ]
+      }
+    ]
+  },
+  6: {
+    chapters: [
+      {
+        title: "Urdu Nasr Ki Tareekh Aur Dastanvi Adab Ki Ibteda",
+        pages: [
+          "Urdu Nasr (prose) ki tareekh ka mutala university satah par nihayat gehrai ka mutazami hai. Ibteda mein Urdu zabaan sirf shairi aur manzom takhleeqat tak mehdood samjhi jati thi. Adabi naqideen, jese Dr. Jamil Jalibi, apni tehqeeq mein wazeh karte hain ke baqaida adabi nasr ki ibteda dastangoi se hui. Dastanein un tawil qisson par mushtamil hoti thin jahan ma-baad-at-tabiyat (supernatural) anasir, jinn, pariyan, aur jadu gar shamil hote the.",
+          "Urdu nasr ki tareekh mein Fort William College (Calcutta) ka qiyam ek nihayat ahem sange-meel hai. San 1800 mein قائم hone wale is college ka maqsad angraiz afsaran ko maqami zabaan sikhana tha. Is maqsad ke liye Mir Amman jese Maroof tehreer karon ko jama kiya gaya jinhone 'Bagh-o-Bahar' jesi azeem dastan ko saaf, sulaas aur aam fehm Urdu nasr mein tarjuma kiya, jis se dastanvi adab ko naya rukh mila.",
+          "Dastanvi adab sirf talism aur jadu ka khail nahi tha, balki yeh us daur ki tehzeeb, muashrat, aur akhlaqi iqdaar ki akasi karta tha. Bagho-o-Bahar ke kirdar jahan bhi jate hain, wahan ke rehan sehan, libas, aur khana peena us zamane ke Dehli aur Lakhnau ki tehzeeb ko wazeh taur par pesh karta hai. Yeh nasr ki wo pehli kadi thi jis ne aage chal kar novel nigari ki bunyad rakhi.",
+          "Fort William College ke baad Delhi College ne Urdu nasr mein ilmi aur sciencu mazaameen ka izafa kiya. Angrezi aur Arabic ki mushkil sciencu kitabon ko Urdu mein dhalne ka kaam shuru hua. Is daur mein Urdu nasr shairi ke takhayulati chungal se nikal kar haqeeqat pasandi aur fani pachtagi ki taraf barhne lagi, jis se zabaan mein wusat paida hui.",
+          "Is chapter ke aakhir mein hum dastanvi adab ke zawaal aur novel ke urooj ka muwazna karte hain. Industrial revolution aur taleem ke phelne se logon ke paas lambi dastanein sunne ka waqt khatam ho gaya, aur unki jagah Deputy Nazir Ahmad jese musannifeen ne haqeeqat pasand novel likhne shuru kiye, jo muashray ki asliyat ko beyan karte the."
+        ]
+      }
+    ]
+  },
+  7: {
+    chapters: [
+      {
+        title: "The Concept of Statehood and Governance in Islamic Law",
+        pages: [
+          "Islamic studies at the academic level approaches governance through the evaluation of historical documents, legislative models, and the evolution of the state under Islamic jurisprudence. Dr. Muhammad Hamidullah's research highlights that Islam does not merely offer personal moral guidance, but establishes a comprehensive framework for public administration, judicial fairness, and international relations.",
+          "The absolute constitutional cornerstone of Islamic governance was laid down in the 'Meethaq-e-Medina' (The Constitution of Medina), drafted by Prophet Muhammad (PBUH) in 622 CE. Academic historians recognize this document as the world's first multi-faith written constitution. It unified distinct tribes, protected minority religious freedom, and established a collective defense system, defining a centralized legal authority.",
+          "In Islamic jurisprudence (Sharia), governance is anchored on the principle of 'Shura' (Consultation). The ruling authority or leadership is mandated to consult experts and community representatives before executing public policies. This systemic framework prevents autocracy, ensuring that resources and administrative actions serve 'Maslahah'—the absolute public interest and welfare.",
+          "Economic justice forms the structural bedrock of the Islamic state model. Through the systematic implementation of Zakat (obligatory welfare tax) and the strict prohibition of Riba (usury/interest), the system prevents the dangerous concentration of wealth within elite circles. This creates a mandatory circulation of capital down to impoverished demographics, stabilizing micro-economies.",
+          "Human rights and dynamic minority protection laws within Islamic governance are strictly codified. Non-Muslim citizens under historical treaties were classified as 'Dhimmi' (protected individuals), granting them full autonomy to run their internal judicial systems according to their own scriptures. This legislative pluralism allowed distinct legal systems to operate harmoniously within a single sovereign state."
+        ]
+      }
+    ]
+  },
+  8: {
+    chapters: [
+      {
+        title: "Asymptotic Analysis, Big-O Notation, and Sorting Algorithms",
+        pages: [
+          "In computational computer science, an algorithm is not judged merely by its capability to complete a task, but by its absolute efficiency when processing massive datasets. As computational inputs scale toward infinity, testing execution speeds on individual physical machines becomes useless due to hardware variances. To solve this, Thomas H. Cormen's framework implements Asymptotic Analysis, tracking execution growth mathematically using Big-O, Big-Omega, and Big-Theta notations.",
+          "Big-O notation establishes an asymptotic upper bound, defining the absolute worst-case execution profile of an algorithm. For example, if an algorithm processes an array using a single simple loop running from 0 to N, its time complexity scales linearly, denoted as O(N). If it contains nested loops where every element interacts with every other element, the complexity drops heavily to quadratic time, or O(N²).",
+          "Let us evaluate classical sorting paradigms to see these granular differences in action. Bubble Sort and Insertion Sort operate on simple pairwise comparison mechanisms. In their worst-case scenarios—where an input array is completely inverted—their performance degrades to O(N²). While mathematically easy to write and compile, they become computationally unviable when processing millions of live server data matrices.",
+          "To achieve peak efficiency, we transition to the Divide-and-Conquer algorithmic design, which is masterfully showcased by Merge Sort and Quick Sort. Merge Sort breaks an array down into singular isolated nodes, sorts those atomic subunits, and merges them back together. Because the array division scales logarithmically and the merging process takes linear time, Merge Sort achieves a guaranteed worst-case runtime of O(N log N).",
+          "Space Complexity is the sister metric tracked alongside time execution profiles. While Merge Sort guarantees high temporal performance, it demands O(N) extra helper memory to execute its merging stages. Quick Sort, conversely, executes array partitioning in-place, achieving an average space complexity of O(log N). This balancing act between time and memory constraints forms the core of systems architecture decisions."
+        ]
+      }
+    ]
+  }
+};
+
+function showPage(page) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById(page + '-page').classList.add('active');
+  
+  // Reset nav link active state
+  document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active-link'));
+  if(page === 'home' || page === 'browse') {
+    const activeNav = document.getElementById('nav-' + page);
+    if(activeNav) activeNav.classList.add('active-link');
+  }
+  window.scrollTo(0, 0);
+}
+
+function renderBooks(filteredBooks = BOOKS) {
+  const grid = document.getElementById('books-grid');
+  if(filteredBooks.length === 0) {
+    grid.innerHTML = `<p style="padding: 2rem; color: var(--muted);">No matching academic textbooks found.</p>`;
+    return;
+  }
+  grid.innerHTML = filteredBooks.map(b => `
+    <div class="book-card" onclick="openBookIndex(${b.id})">
+      <div class="book-cover" style="background:${b.color}">
+        <div class="book-cover-title">${b.title}</div>
+      </div>
+      <div class="book-meta">
+        <div class="book-author">by ${b.author}</div>
+        <span style="font-size:0.7rem; background: #e2e8f0; padding:0.25rem 0.6rem; border-radius:100px; font-weight:600; color:var(--forest);">${b.genre}</span>
+        <button class="book-read-btn" style="margin-top:1rem;">View Chapters & Index</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+function renderHomePreview() {
+  const grid = document.getElementById('home-books-preview');
+  grid.innerHTML = BOOKS.slice(0, 4).map(b => `
+    <div class="home-book-card" onclick="openBookIndex(${b.id})">
+      <div class="home-book-cover" style="background:${b.color}"></div>
+      <div class="home-book-meta">
+        <div class="home-book-title">${b.title}</div>
+        <div style="font-size:0.7rem; color:var(--muted); margin-top:0.25rem;">${b.author}</div>
+      </div>
+    </div>
+  `).join('');
+}
+
+function filterBooks() {
+  const val = document.getElementById('search-input').value.toLowerCase();
+  const filtered = BOOKS.filter(b => b.title.toLowerCase().includes(val) || b.author.toLowerCase().includes(val) || b.genre.toLowerCase().includes(val));
+  renderBooks(filtered);
+}
+
+function openBookIndex(id) {
+  const book = BOOKS.find(b => b.id === id);
+  const content = BOOK_CONTENT[id];
+  const indexContent = document.getElementById('index-content');
+  
+  if(!content || !content.chapters) {
+    alert("Full chapters are currently being indexed for this book. Check Math or IT!");
+    return;
+  }
+  
+  indexContent.innerHTML = `
+    <div class="index-header">
+      <button class="reader-back" onclick="showPage('browse')" style="color: var(--forest); background:var(--cream); border-color:rgba(0,0,0,0.1); margin-bottom:1rem;">← Back to Main Catalog</button>
+      <h2 class="index-title">${book.title}</h2>
+      <p style="color:var(--muted); margin-top:0.25rem;">Author: <strong>${book.author}</strong> | Core Subject Domain: <strong>${book.genre}</strong></p>
+    </div>
+    <h3 style="margin-bottom:1.25rem; font-family:'Playfair Display', serif; color: var(--forest);">Standard Table of Contents (Index)</h3>
+    <ul class="chapter-list">
+      ${content.chapters.map((ch, idx) => `
+        <li class="chapter-item" onclick="readChapter(${id}, ${idx})">
+          <span class="chapter-name">${ch.title}</span>
+          <span class="chapter-number">Chapter ${idx + 1} (Multi-Page Content)</span>
+        </li>
+      `).join('')}
+    </ul>
+  `;
+  showPage('index');
+}
+
+function readChapter(bookId, chIdx) {
+  const book = BOOKS.find(b => b.id === bookId);
+  const ch = BOOK_CONTENT[bookId].chapters[chIdx];
+  const readerContent = document.getElementById('reader-content');
+  
+  // Building the multi-page structure inside the reader
+  const pagesHTML = ch.pages.map((pText, pIdx) => `
+    <div class="reader-text">
+      <p>${pText}</p>
+    </div>
+    <div class="reader-page-break">✦ Page ${pIdx + 1} of ${ch.pages.length} ✦</div>
+  `).join('');
+
+  readerContent.innerHTML = `
+    <div class="reader-topbar">
+      <button class="reader-back" onclick="openBookIndex(${bookId})">← Back to Index</button>
+      <div class="reader-topbar-title">${book.title}</div>
+      <div style="color:white; font-size:0.85rem; font-weight:600;">Chapter ${chIdx + 1}</div>
+    </div>
+    <div class="reader-body">
+      <div class="reader-chapter-title">Chapter ${chIdx + 1}: ${ch.title}</div>
+      ${pagesHTML}
+      <div style="text-align:center; padding-top:2rem;">
+        <button class="btn-primary" onclick="openBookIndex(${bookId})">✓ Finished Reading (Return to Index)</button>
+      </div>
+    </div>
+  `;
+  showPage('reader');
+}
+
+// Initialization on load
+renderHomePreview();
+renderBooks();
+</script>
+</body>
+</html>
